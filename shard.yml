@@ -1,0 +1,17 @@
+name: tokyocabinet
+version: 0.1.0
+
+dependencies:
+  var:
+    github: maiha/var.cr
+    version: ">= 1.2.0"
+  pretty:
+    github: maiha/pretty.cr
+    version: ">= 0.6.5"
+
+authors:
+  - maiha <maiha@wota.jp>
+
+crystal: 0.27.0
+
+license: MIT

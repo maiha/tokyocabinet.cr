@@ -1,0 +1,6 @@
+tchdbclose
+tchdbecode
+tchdberrmsg
+tchdbget2
+tchdbout2
+tchdbput2

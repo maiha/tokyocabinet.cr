@@ -1,0 +1,9 @@
+version: '2'
+services:
+  crystal:
+    build: .
+    command: "crystal --version"
+    network_mode: "host"
+    volumes:
+      - $PWD:/mnt
+    working_dir: /mnt

@@ -1,0 +1,19 @@
+#!/bin/bash
+set -euo pipefail
+shopt -s nullglob
+
+if [ $# -eq 0 ]; then
+  set -- bash
+fi
+
+case "$1" in
+setup)
+  set -- make "$@"
+  ;;
+spec)
+  set -- crystal "$@"
+  ;;
+esac
+
+set -- docker-compose run --rm crystal "$@"
+exec "$@"

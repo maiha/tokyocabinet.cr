@@ -42,7 +42,7 @@ $ apt install libtokyocabinet-dev
 dependencies:
   tokyocabinet:
     github: maiha/tokyocabinet.cr
-    version: 0.1.0
+    version: 0.2.0
 ```
 2. Run `shards install`
 

@@ -1,13 +1,12 @@
 SHELL=/bin/bash
 API_IMPLS := src/tokyocabinet/hdb.cr
-API_FILES := $(shell find doc/api -name '*.*')
 
 VERSION=
 CURRENT_VERSION=$(shell git tag -l | sort -V | tail -1)
 GUESSED_VERSION=$(shell git tag -l | sort -V | tail -1 | awk 'BEGIN { FS="." } { $$3++; } { printf "%d.%d.%d", $$1, $$2, $$3 }')
 
-.PHONY : all test clean spec umount
-all: API.md test umount
+.PHONY : all test clean spec umount docs
+all: docs test umount
 
 test: clean spec check_version_mismatch
 
@@ -20,8 +19,16 @@ umount:
 spec:
 	./crystal spec -v --fail-fast
 
-API.md: $(API_FILES) doc/api/list doc/api/impl Makefile
-	crystal doc/api/doc.cr > API.md
+docs: doc/api/HDB.md doc/api/API.md
+
+doc/api/HDB.md: src/tokyocabinet/hdb.cr Makefile
+	@echo "# Tokyocabinet::HDB" > $@
+	@echo '```crystal' >> $@
+	@egrep '^\s+def ' src/tokyocabinet/hdb.cr | grep -v initialize >> $@
+	@echo '```' >> $@
+
+doc/api/API.md: doc/api/doc.cr doc/api/list doc/api/impl doc/api/note Makefile
+	crystal doc/api/doc.cr > $@
 
 doc/api/list: src/lib_tokyocabinet.cr Makefile
 	cat $^ | awk '/^[ ]+fun /{sub("\(", " ");print substr($$2,1,3) "\t" $$2}' | sort | uniq > $@

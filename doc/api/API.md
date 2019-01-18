@@ -1,6 +1,6 @@
 # Supported API
-## Implemented 8% (6/75)
-### Tch (6 / 75)
+## Implemented 9% (7/75)
+### Tch (7 / 75)
 
 |Command            |impl|note|
 |-------------------|:--:|----|
@@ -59,7 +59,7 @@
 |`tchdbputkeep`     |    |    |
 |`tchdbputkeep2`    |    |    |
 |`tchdbputproc`     |    |    |
-|`tchdbrnum`        |    |    |
+|`tchdbrnum`        |  ✓ |    |
 |`tchdbsetcache`    |    |    |
 |`tchdbsetcodecfunc`|    |    |
 |`tchdbsetdbgfd`    |    |    |

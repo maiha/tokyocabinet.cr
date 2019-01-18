@@ -3,7 +3,7 @@ module Tokyocabinet::Core
     macro {{op.id}}(*args)
       if LibTokyocabinet.{{op.id}}(\{{*args}}) == LibC::TRUE
       else
-        raise error_message
+        raise_error
       end
     end
   end

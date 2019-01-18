@@ -3,38 +3,47 @@ class Tokyocabinet::HDB
 
   @[Flags]
   enum Omode
-    READER = LibTokyocabinet::HDBOREADER
-    WRITER = LibTokyocabinet::HDBOWRITER
-    CREATE = LibTokyocabinet::HDBOCREAT
+    READ     = LibTokyocabinet::HDBOREADER
+    WRITE    = LibTokyocabinet::HDBOWRITER
+    CREATE   = LibTokyocabinet::HDBOCREAT
+    TRUNCATE = LibTokyocabinet::HDBOTRUNC
   end
 
-  def self.open(path : String, mode : (Omode | String)? = nil) : HDB
+  def self.open(path : String, mode : Omode | String = "r") : HDB
     omode = self.omode(mode)
-    if omode.writer? || omode.create?
+    if omode.write? || omode.create?
       Dir.mkdir_p(File.dirname(path))
     end
-
+    
     ptr = LibTokyocabinet.tchdbnew
     if LibTokyocabinet.tchdbopen(ptr, path, omode) == LibC::TRUE
-      return new(ptr)
+      return new(ptr, clue: path)
     else
-      raise Errno.new("Error opening file '#{path}' with mode '#{omode}'")
+      err = Tokyocabinet.err(LibTokyocabinet.tchdbecode(ptr))
+      case err
+      when .tcenofile?
+        raise Errno.new("Error opening file '#{path}' with mode '#{omode}'", Errno::ENOENT)
+      when .tcethread?
+        raise Errno.new("Already opened file '#{path}'", Errno::EDEADLK)
+      else
+        raise "#{err}: path='#{path}' mode='#{omode}'"
+      end
     end
   end
 
-  def self.omode(v : Omode | String | Nil) : Omode
+  protected def self.omode(v : Omode | String | Nil) : Omode
     case v
     when Omode    ; v
-    when nil, "r" ; Omode::READER
-    when "w"      ; Omode::WRITER
-    when "w+"     ; Omode::CREATE | Omode::WRITER
+    when nil, "r" ; Omode::READ
+    when "w"      ; Omode::WRITE
+    when "w+"     ; Omode::WRITE | Omode::CREATE
     else          ; raise "Unknown open mode: '#{v}'"
     end
   end
 end
 
 class Tokyocabinet::HDB
-  def initialize(@hdb : LibTokyocabinet::Tchdb*)
+  def initialize(@hdb : LibTokyocabinet::Tchdb*, @clue : String)
   end
 
   private def hdb
@@ -42,16 +51,15 @@ class Tokyocabinet::HDB
     @hdb
   end
 
+  private def raise_error
+    ecode = tchdbecode(hdb)
+    raise Tokyocabinet::Error.build(ecode, String.new(tchdberrmsg(ecode)))
+  end
+
   def close
     tchdbclose(hdb)
   end
   
-  def error_message : String
-    ecode = tchdbecode(hdb)
-    ptr = tchdberrmsg(ecode)
-    return String.new(ptr)
-  end
-
   def get?(key : String) : String?
     ptr = tchdbget2(hdb, key)
     if ptr.null?
@@ -67,6 +75,8 @@ class Tokyocabinet::HDB
   
   def set(key : String, val : String)
     tchdbput2(hdb, key, val)
+  rescue err : InvalidOperation
+    raise IO::Error.new("File not open for writing: #{@clue}")
   end
 
   def del(key : String) : Bool
@@ -75,6 +85,10 @@ class Tokyocabinet::HDB
   rescue err
     return false if err.message =~ /no record/
     raise err
+  end
+
+  def count : Int64
+    tchdbrnum(hdb).to_i64
   end
   
 #  throws tchdbadddouble
@@ -132,7 +146,7 @@ class Tokyocabinet::HDB
 #  throws tchdbputkeep
 #  throws tchdbputkeep2
 #  throws tchdbputproc
-#  throws tchdbrnum
+  proxy  tchdbrnum
 #  throws tchdbsetcache
 #  throws tchdbsetcodecfunc
 #  throws tchdbsetdbgfd

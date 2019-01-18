@@ -8,7 +8,7 @@ TokyoCabinet client for [Crystal](http://crystal-lang.org/).
 ```crystal
 require "tokyocabinet"
 
-hdb = HDB.open("test.tch", "w+")
+hdb = Tokyocabinet::HDB.open("test.tch", "w+") # mode: "r", "w", "w+"
 hdb.set("foo", "abc")
 hdb.get("foo")  # => "abc"
 hdb.get?("foo") # => "abc"
@@ -17,18 +17,14 @@ hdb.get("xxx")  # raises "not found"
 hdb.del("foo")  # => true
 hdb.del("foo")  # => false
 hdb.get?("foo") # => nil
+hdb.count       # => 0
 hdb.close
 ```
 
 ## Supported API
 
-- Tokyocabinet::HDB
-  - [x] `get(key) : String`
-  - [x] `set(key, val)`
-  - [x] `del(key) : Bool`
-
-For further information, see [API](./API.md)
-
+- [Tokyocabinet::HDB](./doc/api/HDB.md)
+- [LibTokyocabinet](./doc/api/API.md)
 
 ## Prerequisites
 

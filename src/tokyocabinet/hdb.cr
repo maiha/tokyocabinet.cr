@@ -19,16 +19,14 @@ class Tokyocabinet::HDB
     if LibTokyocabinet.tchdbopen(ptr, path, omode) == LibC::TRUE
       return new(ptr, clue: path)
     else
-      err = Tokyocabinet.err(LibTokyocabinet.tchdbecode(ptr))
-      case err
-      when .tcenofile?
-        raise Errno.new("Error opening file '#{path}' with mode '#{omode}'", Errno::ENOENT)
-      when .tcethread?
-        raise Errno.new("Already opened file '#{path}'", Errno::EDEADLK)
-      else
-        raise "#{err}: path='#{path}' mode='#{omode}'"
-      end
+      ecode = LibTokyocabinet.tchdbecode(ptr)
+      error = Tokyocabinet::Error.build(ecode, String.new(LibTokyocabinet.tchdberrmsg(ecode)))
+      error.glue = "'#{path}' (#{omode})"
+      raise error
     end
+  rescue err : ThreadingError
+    err.message = "The file is already opened and is locked"
+    raise err
   end
 
   protected def self.omode(v : Omode | String | Nil) : Omode
@@ -70,7 +68,7 @@ class Tokyocabinet::HDB
   end
   
   def get(key : String) : String
-    get?(key) || raise "not found: '#{key}'"
+    get?(key) || raise RecordNotFound.new("not found: '#{key}'")
   end
   
   def set(key : String, val : String)

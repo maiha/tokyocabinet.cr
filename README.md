@@ -13,7 +13,7 @@ hdb.set("foo", "abc")
 hdb.get("foo")  # => "abc"
 hdb.get?("foo") # => "abc"
 hdb.get?("xxx") # => nil
-hdb.get("xxx")  # raises "not found"
+hdb.get("xxx")  # raises RecordNotFound
 hdb.del("foo")  # => true
 hdb.del("foo")  # => false
 hdb.get?("foo") # => nil
@@ -48,8 +48,16 @@ dependencies:
 
 ## Development
 
+### Run test in docker
+
 ```console
 $ make spec
+```
+
+### Generate documents
+
+```console
+$ make docs
 ```
 
 ## Contributing

@@ -66,6 +66,17 @@ HDB.create("a.tch", bnum: 17, force: true) # recreates db with bnum=17
   - [Mode](./src/tokyocabinet/hdb/mode.cr)
 - [LibTokyocabinet](./doc/api/API.md)
 
+## Benchmark
+
+- Intel(R) Core(TM) i7-7700HQ CPU @ 2.80GHz
+
+### set 10_000_000 records
+
+| LANG    | sec    | code |
+----------|--------|-------
+| C       | 17.647 | [examples/bench.c](examples/bench.c)   |
+| Crystal | 18.459 | [examples/bench.cr](examples/bench.cr) |
+
 ## Prerequisites
 
 ### libtokyocabinet

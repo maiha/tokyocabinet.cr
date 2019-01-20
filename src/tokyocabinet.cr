@@ -1,3 +1,5 @@
+### stdlib
+
 ### shards
 require "var"
 require "pretty"
@@ -21,4 +23,4 @@ end
 ### library
 require "./tokyocabinet/error"
 require "./tokyocabinet/core"
-require "./tokyocabinet/**"
+require "./tokyocabinet/*"

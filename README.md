@@ -8,7 +8,9 @@ TokyoCabinet client for [Crystal](http://crystal-lang.org/).
 ```crystal
 require "tokyocabinet"
 
-hdb = Tokyocabinet::HDB.open("test.tch", "w+") # mode: "r", "w", "w+"
+hdb = Tokyocabinet::HDB.open("test.tch", "w+") # default mode is "r"
+# See `Tokyocabinet::HDB::Mode` for more information
+
 hdb.set("foo", "abc")
 hdb.get("foo")  # => "abc"
 hdb.get?("foo") # => "abc"
@@ -24,6 +26,7 @@ hdb.close
 ## Supported API
 
 - [Tokyocabinet::HDB](./doc/api/HDB.md)
+  - [Mode](./src/tokyocabinet/hdb/mode.cr)
 - [LibTokyocabinet](./doc/api/API.md)
 
 ## Prerequisites

@@ -1,13 +1,13 @@
 # Supported API
-## Implemented 9% (7/75)
-### Tch (7 / 75)
+## Implemented 12% (9/75)
+### Tch (9 / 75)
 
 |Command            |impl|note|
 |-------------------|:--:|----|
 |`tchdbadddouble`   |    |    |
 |`tchdbaddint`      |    |    |
 |`tchdbalign`       |    |    |
-|`tchdbbnum`        |    |    |
+|`tchdbbnum`        |  ✓ |    |
 |`tchdbbnumused`    |    |    |
 |`tchdbcacheclear`  |    |    |
 |`tchdbclose`       |  ✓ |    |
@@ -73,7 +73,7 @@
 |`tchdbtranbegin`   |    |    |
 |`tchdbtrancommit`  |    |    |
 |`tchdbtranvoid`    |    |    |
-|`tchdbtune`        |    |    |
+|`tchdbtune`        |  ✓ |    |
 |`tchdbtype`        |    |    |
 |`tchdbvanish`      |    |    |
 |`tchdbvsiz`        |    |    |

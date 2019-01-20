@@ -3,7 +3,8 @@ module Tokyocabinet
     property message
     var glue : String
 
-    def initialize(@err : LibTokyocabinet::ERR, @message : String)
+    def initialize(@err : LibTokyocabinet::ERR, @message : String, glue = nil)
+      self.glue = glue
     end
 
     def message
@@ -61,34 +62,34 @@ module Tokyocabinet
   #   puts "    when LibTokyocabinet::ERR::%-10s ; %s.new(err, msg)" % [name, klass]
   # end
   # ```
-  def Error.build(ecode : Int32, msg) : Error
+  def Error.build(ecode : Int32, msg, glue = nil) : Error
     err = LibTokyocabinet::ERR.from_value?(ecode) || LibTokyocabinet::ERR::TCEMISC
     case err
-    when LibTokyocabinet::ERR::TCESUCCESS ; Success.new(err, msg)
-    when LibTokyocabinet::ERR::TCETHREAD  ; ThreadingError.new(err, msg)
-    when LibTokyocabinet::ERR::TCEINVALID ; InvalidOperation.new(err, msg)
-    when LibTokyocabinet::ERR::TCENOFILE  ; FileNotFound.new(err, msg)
-    when LibTokyocabinet::ERR::TCENOPERM  ; NoPermission.new(err, msg)
-    when LibTokyocabinet::ERR::TCEMETA    ; InvalidMetaData.new(err, msg)
-    when LibTokyocabinet::ERR::TCERHEAD   ; InvalidRecordHeader.new(err, msg)
-    when LibTokyocabinet::ERR::TCEOPEN    ; OpenError.new(err, msg)
-    when LibTokyocabinet::ERR::TCECLOSE   ; CloseError.new(err, msg)
-    when LibTokyocabinet::ERR::TCETRUNC   ; TruncError.new(err, msg)
-    when LibTokyocabinet::ERR::TCESYNC    ; SyncError.new(err, msg)
-    when LibTokyocabinet::ERR::TCESTAT    ; StatError.new(err, msg)
-    when LibTokyocabinet::ERR::TCESEEK    ; SeekError.new(err, msg)
-    when LibTokyocabinet::ERR::TCEREAD    ; ReadError.new(err, msg)
-    when LibTokyocabinet::ERR::TCEWRITE   ; WriteError.new(err, msg)
-    when LibTokyocabinet::ERR::TCEMMAP    ; MmapError.new(err, msg)
-    when LibTokyocabinet::ERR::TCELOCK    ; LockError.new(err, msg)
-    when LibTokyocabinet::ERR::TCEUNLINK  ; UnlinkError.new(err, msg)
-    when LibTokyocabinet::ERR::TCERENAME  ; RenameError.new(err, msg)
-    when LibTokyocabinet::ERR::TCEMKDIR   ; MkdirError.new(err, msg)
-    when LibTokyocabinet::ERR::TCERMDIR   ; RmdirError.new(err, msg)
-    when LibTokyocabinet::ERR::TCEKEEP    ; ExistingRecord.new(err, msg)
-    when LibTokyocabinet::ERR::TCENOREC   ; NoRecordFound.new(err, msg)
-    when LibTokyocabinet::ERR::TCEMISC    ; MiscellaneousError.new(err, msg)
-    else                                  ; Error.new(err, msg)
+    when LibTokyocabinet::ERR::TCESUCCESS ; Success.new(err, msg, glue)
+    when LibTokyocabinet::ERR::TCETHREAD  ; ThreadingError.new(err, msg, glue)
+    when LibTokyocabinet::ERR::TCEINVALID ; InvalidOperation.new(err, msg, glue)
+    when LibTokyocabinet::ERR::TCENOFILE  ; FileNotFound.new(err, msg, glue)
+    when LibTokyocabinet::ERR::TCENOPERM  ; NoPermission.new(err, msg, glue)
+    when LibTokyocabinet::ERR::TCEMETA    ; InvalidMetaData.new(err, msg, glue)
+    when LibTokyocabinet::ERR::TCERHEAD   ; InvalidRecordHeader.new(err, msg, glue)
+    when LibTokyocabinet::ERR::TCEOPEN    ; OpenError.new(err, msg, glue)
+    when LibTokyocabinet::ERR::TCECLOSE   ; CloseError.new(err, msg, glue)
+    when LibTokyocabinet::ERR::TCETRUNC   ; TruncError.new(err, msg, glue)
+    when LibTokyocabinet::ERR::TCESYNC    ; SyncError.new(err, msg, glue)
+    when LibTokyocabinet::ERR::TCESTAT    ; StatError.new(err, msg, glue)
+    when LibTokyocabinet::ERR::TCESEEK    ; SeekError.new(err, msg, glue)
+    when LibTokyocabinet::ERR::TCEREAD    ; ReadError.new(err, msg, glue)
+    when LibTokyocabinet::ERR::TCEWRITE   ; WriteError.new(err, msg, glue)
+    when LibTokyocabinet::ERR::TCEMMAP    ; MmapError.new(err, msg, glue)
+    when LibTokyocabinet::ERR::TCELOCK    ; LockError.new(err, msg, glue)
+    when LibTokyocabinet::ERR::TCEUNLINK  ; UnlinkError.new(err, msg, glue)
+    when LibTokyocabinet::ERR::TCERENAME  ; RenameError.new(err, msg, glue)
+    when LibTokyocabinet::ERR::TCEMKDIR   ; MkdirError.new(err, msg, glue)
+    when LibTokyocabinet::ERR::TCERMDIR   ; RmdirError.new(err, msg, glue)
+    when LibTokyocabinet::ERR::TCEKEEP    ; ExistingRecord.new(err, msg, glue)
+    when LibTokyocabinet::ERR::TCENOREC   ; NoRecordFound.new(err, msg, glue)
+    when LibTokyocabinet::ERR::TCEMISC    ; MiscellaneousError.new(err, msg, glue)
+    else                                  ; Error.new(err, msg, glue)
     end
   end
 end

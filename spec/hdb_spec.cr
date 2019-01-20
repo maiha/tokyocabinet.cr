@@ -2,7 +2,6 @@ require "./spec_helper"
 
 module Tokyocabinet
   describe HDB do
-
     describe "(README)" do
       it "works" do
         hdb = HDB.open("tmp/test.tch", "w+")
@@ -25,11 +24,37 @@ module Tokyocabinet
       end
     end
 
+    describe ".create" do
+      it "writes database" do
+        Pretty::Dir.clean("tmp")
+        HDB.create("tmp/test.tch")
+        HDB.open("tmp/test.tch", &.bnum).should eq(131071)
+      end
+
+      it "respects bnum" do
+        Pretty::Dir.clean("tmp")
+        HDB.create("tmp/test.tch", bnum: 16)
+        HDB.open("tmp/test.tch", &.bnum).should eq(17) # ceiled to prime number
+      end
+
+      it "truncates existing db when :truncate option is set" do
+        Pretty::Dir.clean("tmp")
+        HDB.open("tmp/test.tch", "w+", &.set("a", "1"))
+        HDB.open("tmp/test.tch", &.count).should eq(1)
+
+        HDB.create("tmp/test.tch", truncate: false)
+        HDB.open("tmp/test.tch", &.count).should eq(1)
+
+        HDB.create("tmp/test.tch")
+        HDB.open("tmp/test.tch", &.count).should eq(0)
+      end
+    end
+
     describe ".open" do
       context "(default)" do
         it "fails when the file is not found" do
           expect_raises(FileNotFound, /xxx.tch/) do
-            HDB.open("tmp/xxx.tch")
+            HDB.open("tmp/xxx.tch").close
           end
         end
       end
@@ -38,7 +63,7 @@ module Tokyocabinet
         it "fails when the file is not found" do
           Pretty::Dir.clean("tmp")
           expect_raises(FileNotFound, /test.tch/) do
-            HDB.open("tmp/test.tch", "r")
+            HDB.open("tmp/test.tch", "r").close
           end
         end
 
@@ -67,7 +92,7 @@ module Tokyocabinet
         it "fails when the file is not found" do
           Pretty::Dir.clean("tmp")
           expect_raises(FileNotFound, /test.tch/) do
-            HDB.open("tmp/test.tch", "w")
+            HDB.open("tmp/test.tch", "w").close
           end
         end
 
@@ -117,23 +142,13 @@ module Tokyocabinet
         it "fails when the same file has been opened by same pthread" do
           a = HDB.open("tmp/test.tch")
           expect_raises(ThreadingError, /The file is already opened and is locked/) do
-            b = HDB.open("tmp/test.tch")
+            HDB.open("tmp/test.tch").close
           end
           a.close
 
           # works after unlocked
           b = HDB.open("tmp/test.tch")
           b.close
-        end
-      end
-
-      context "(permission)" do
-        it "fails when the same file has wrong permissions" do
-          File.chmod("tmp/test.tch", 0o400)
-          expect_raises(Tokyocabinet::NoPermission, /test.tch/) do
-            HDB.open("tmp/test.tch", "w")
-          end
-          File.chmod("tmp/test.tch", 0o644)
         end
       end
     end

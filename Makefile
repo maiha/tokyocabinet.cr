@@ -1,5 +1,5 @@
 SHELL=/bin/bash
-API_IMPLS := src/tokyocabinet/hdb.cr
+API_IMPLS := src/tokyocabinet/hdb/api.cr
 
 VERSION=
 CURRENT_VERSION=$(shell git tag -l | sort -V | tail -1)
@@ -21,10 +21,10 @@ spec:
 
 docs: doc/api/HDB.md doc/api/API.md
 
-doc/api/HDB.md: src/tokyocabinet/hdb.cr Makefile
+doc/api/HDB.md: src/tokyocabinet/hdb/api.cr Makefile
 	@echo "# Tokyocabinet::HDB" > $@
 	@echo '```crystal' >> $@
-	@egrep '^\s+def ' src/tokyocabinet/hdb.cr | grep -v initialize >> $@
+	@egrep '^\s+def ' src/tokyocabinet/hdb/api.cr | grep -v initialize >> $@
 	@echo '```' >> $@
 
 doc/api/API.md: doc/api/doc.cr doc/api/list doc/api/impl doc/api/note Makefile

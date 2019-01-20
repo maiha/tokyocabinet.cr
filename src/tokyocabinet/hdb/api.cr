@@ -39,7 +39,7 @@ class Tokyocabinet::HDB
     end
     return self
   end
-  
+
   def get?(key : String) : String?
     ptr = tchdbget2(key)
     if ptr.null?
@@ -174,13 +174,17 @@ class Tokyocabinet::HDB
     return hdb.close
   end
 
-  def self.open(path : String, mode : Mode | String = "r") : HDB
-    new(path, Mode.build(mode)).lock
+  def self.open(path : String, mode : (Mode | String)? = nil) : HDB
+    new(path, mode).lock
   end
 
-  def self.open(path : String, mode : Mode | String = "r", &block : HDB -> _ )
+  def self.open(path : String, mode : (Mode | String)? = nil, &block : HDB -> _ )
     block.call(hdb = open(path, mode))
   ensure
     hdb.try(&.close)
+  end
+
+  def self.[](path : String, mode : (Mode | String)? = nil) : HDB
+    new(path, mode)
   end
 end

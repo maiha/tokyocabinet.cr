@@ -1,9 +1,12 @@
-module Tokyocabinet::Core
-  private macro connect(&block)
+module Tokyocabinet::Core(T)
+  abstract def db : T
+
+  def connect(&block : -> _)
     if opened?
-      ({{yield}})
+      yield
     else
-      open; ({{yield}}).tap{ close }
+      open
+      yield.tap{ close }
     end
   end
 

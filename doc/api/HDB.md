@@ -12,6 +12,7 @@
   def count : Int64
   def bnum : Int64
   def self.create(path : String, bnum : Int64 = 131071, apow : Int8 = 4, fpow : Int8 = 10, opts : Opts = :none, force : Bool = false)
-  def self.open(path : String, mode : Mode | String = "r") : HDB
-  def self.open(path : String, mode : Mode | String = "r", &block : HDB -> _ )
+  def self.open(path : String, mode : (Mode | String)? = nil) : HDB
+  def self.open(path : String, mode : (Mode | String)? = nil, &block : HDB -> _ )
+  def self.[](path : String, mode : (Mode | String)? = nil) : HDB
 ```

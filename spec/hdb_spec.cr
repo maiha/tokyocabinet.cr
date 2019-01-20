@@ -8,9 +8,11 @@ module Tokyocabinet
   describe HDB do
     describe "(README)" do
       it "works" do
-        hdb = HDB.open("tmp/test.tch", "w+")
+        hdb = HDB.open("tmp/test.tch")
 
         hdb.set("foo", "abc")
+        hdb.count.should eq(1)
+
         hdb.get("foo").should eq("abc")
         hdb.get?("foo").should eq("abc")
         hdb.get?("xxx").should eq(nil)
@@ -21,9 +23,18 @@ module Tokyocabinet
         hdb.del("foo").should eq(false)
         hdb.get?("foo").should eq(nil)
 
-        hdb.set("foo", "abc")
-        hdb.count.should eq(1)
-        
+        hdb.close
+      end
+    end
+
+    describe "#connect(&block)" do
+      it "ensures connection" do
+        clean
+        hdb = HDB.new("tmp/test.tch")
+        hdb.opened?.should eq(false)
+        hdb.connect do
+          hdb.opened?.should eq(true)
+        end
         hdb.close
       end
     end
@@ -32,40 +43,41 @@ module Tokyocabinet
       it "writes database" do
         clean
         HDB.create("tmp/test.tch")
-        HDB.open("tmp/test.tch", &.bnum).should eq(131071)
+        HDB["tmp/test.tch", "r"].count.should eq(0)
       end
 
       it "respects bnum" do
         clean
         HDB.create("tmp/test.tch", bnum: 16)
-        HDB.new("tmp/test.tch").bnum.should eq(17) # ceiled to prime number
+        HDB["tmp/test.tch"].bnum.should eq(17) # ceiled to prime number
       end
 
       it "ignores when the file already exists" do
         clean
         HDB.create("tmp/test.tch", bnum: 17)
-        HDB.new("tmp/test.tch").bnum.should eq(17)
+        HDB["tmp/test.tch"].bnum.should eq(17)
 
         HDB.create("tmp/test.tch", bnum: 100)
-        HDB.new("tmp/test.tch").bnum.should eq(17)
+        HDB["tmp/test.tch"].bnum.should eq(17)
       end
 
       it "deletes existing file when :force is set" do
         clean
         HDB.create("tmp/test.tch", bnum: 17)
-        HDB.new("tmp/test.tch").bnum.should eq(17)
+        HDB["tmp/test.tch"].bnum.should eq(17)
 
         HDB.create("tmp/test.tch", bnum: 59, force: true)
-        HDB.new("tmp/test.tch").bnum.should eq(59)
+        HDB["tmp/test.tch"].bnum.should eq(59)
       end
     end
 
     describe ".open" do
       context "(default)" do
-        it "fails when the file is not found" do
-          expect_raises(FileNotFound, /xxx.tch/) do
-            HDB.open("tmp/xxx.tch").close
-          end
+        it "act as mode=w+" do
+          clean
+          hdb = HDB.open("tmp/xxx.tch")
+          hdb.set("foo", "1")
+          hdb.close
         end
       end
 
@@ -78,15 +90,11 @@ module Tokyocabinet
         end
 
         it "(stub data)" do
-          hdb = HDB.open("tmp/test.tch", "w+")
-          hdb.set("foo", "1")
-          hdb.close
+          HDB.new("tmp/test.tch").set("foo", "1")
         end
 
         it "can read" do
-          hdb = HDB.open("tmp/test.tch", "r")
-          hdb.get("foo").should eq("1")
-          hdb.close
+          HDB.new("tmp/test.tch", "r").get("foo").should eq("1")
         end
 
         it "can't write" do
@@ -145,6 +153,16 @@ module Tokyocabinet
           hdb.set("foo", "2")
           hdb.get("foo").should eq("2")
           hdb.close
+        end
+      end
+
+      context "(mode: t)" do
+        it "truncates existing file" do
+          clean
+          HDB.new("tmp/test.tch", "w+").set("foo", "1")
+
+          HDB.new("tmp/test.tch", "w+").count.should eq(1)
+          HDB.new("tmp/test.tch", "wt+").count.should eq(0)
         end
       end
 

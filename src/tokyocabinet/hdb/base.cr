@@ -1,7 +1,9 @@
 class Tokyocabinet::HDB
-  include Core
+  include Core(HDB)
 
   delegate build_error, to: self.class
+
+  DEFAULT_MODE = Mode.build("w+")
   
   var ptr : LibTokyocabinet::Tchdb* # also used as opened flag
 
@@ -9,12 +11,9 @@ class Tokyocabinet::HDB
   getter mode
   getter clue
   
-  def initialize(@path : String, @mode : Mode, clue : String? = nil)
+  def initialize(@path : String, mode : (Mode | String)? = nil, clue : String? = nil)
+    @mode = Mode.build(mode || DEFAULT_MODE)
     @clue = clue || @path
-  end
-
-  def self.new(path : String, mode : String = "r", clue : String? = nil)
-    new(path, Mode.build(mode), clue)
   end
   
   private def db

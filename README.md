@@ -8,10 +8,12 @@ TokyoCabinet client for [Crystal](http://crystal-lang.org/).
 ```crystal
 require "tokyocabinet"
 
-hdb = Tokyocabinet::HDB.open("test.tch", "w+") # default mode is "r"
-# See `Tokyocabinet::HDB::Mode` for more information
+include Tokyocabinet
+hdb = HDB.open("test.tch", mode: "w+")
+# See `Tokyocabinet::HDB::Mode` for available modes
 
 hdb.set("foo", "abc")
+hdb.count       # => 1
 hdb.get("foo")  # => "abc"
 hdb.get?("foo") # => "abc"
 hdb.get?("xxx") # => nil
@@ -19,7 +21,7 @@ hdb.get("xxx")  # raises RecordNotFound
 hdb.del("foo")  # => true
 hdb.del("foo")  # => false
 hdb.get?("foo") # => nil
-hdb.count       # => 0
+
 hdb.close
 ```
 
@@ -30,13 +32,24 @@ The `unlock` method provides dynamic locking at command execution.
 Although this avoids deadlock, execution speed is slow and resource consumption is increased.
 
 ```crystal
-a = HDB.open("test.tch", "w+") # "test.tch" is locked by a
-b = HDB.open("test.tch", "r")  # raises ThreadingError (even if readonly)
-a.unlock                       # "test.tch" is free
-b = HDB.open("test.tch", "w+") # "test.tch" is locked by b
-b.unlock                       # "test.tch" is free
-a.set("foo", "1")              # locked and unlocked automatically
-b.set("bar", "2")              # locked and unlocked automatically
+a = HDB.open("test.tch")      # locked by a
+b = HDB.open("test.tch", "r") # raises ThreadingError (even if readonly)
+a.unlock                      # free
+b = HDB.open("test.tch")      # locked by b
+b.unlock                      # free
+a.set("foo", "1")             # locked and unlocked automatically
+b.set("bar", "2")             # locked and unlocked automatically
+```
+
+Note that `.new` is same as `.[]` and `.open.unlock`.
+So all following codes work same.
+
+```crystal
+HDB.new("test.tch")
+HDB.new("test.tch", "w+")
+HDB["test.tch"]
+HDB["test.tch", "w+"]
+HDB.open("test.tch").unlock
 ```
 
 ### tuning

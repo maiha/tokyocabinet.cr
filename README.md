@@ -23,6 +23,30 @@ hdb.count       # => 0
 hdb.close
 ```
 
+### locks
+
+By default, TokyoCabinet locks db files that run on the same thread.
+The `unlock` method provides dynamic locking at command execution.
+Although this avoids deadlock, execution speed is slow and resource consumption is increased.
+
+```crystal
+a = HDB.open("test.tch", "w+") # "test.tch" is locked by a
+b = HDB.open("test.tch", "r")  # raises ThreadingError (even if readonly)
+a.unlock                       # "test.tch" is free
+b = HDB.open("test.tch", "w+") # "test.tch" is locked by b
+b.unlock                       # "test.tch" is free
+a.set("foo", "1")              # locked and unlocked automatically
+b.set("bar", "2")              # locked and unlocked automatically
+```
+
+### tuning
+
+```crystal
+HDB.create("a.tch", bnum: 13)              # creates db with bnum=13
+HDB.create("a.tch", bnum: 17)              # skips (already exists)
+HDB.create("a.tch", bnum: 17, force: true) # recreates db with bnum=17
+```
+
 ## Supported API
 
 - [Tokyocabinet::HDB](./doc/api/HDB.md)
@@ -50,6 +74,10 @@ dependencies:
 2. Run `shards install`
 
 ## Development
+
+```console
+$ crystal spec -v
+```
 
 ### Run test in docker
 

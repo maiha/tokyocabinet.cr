@@ -34,7 +34,7 @@ doc/api/list: src/lib_tokyocabinet.cr Makefile
 	cat $^ | awk '/^[ ]+fun /{sub("\(", " ");print substr($$2,1,3) "\t" $$2}' | sort | uniq > $@
 
 doc/api/impl: $(API_IMPLS) Makefile
-	grep -hv "^\s*#" $(API_IMPLS) | awk '/^[ ]+(proxy|throws)/{print $$2}' | sort | uniq > $@
+	grep -hv "^\s*#" $(API_IMPLS) | awk '/^[ ]+(native|throws)/{print $$2}' | sort | uniq > $@
 
 .PHONY : check_version_mismatch
 check_version_mismatch: shard.yml README.md

@@ -1,10 +1,47 @@
 class Tokyocabinet::HDB
-  def close
-    tchdbclose(hdb)
+  def open : HDB
+    return self if opened?
+
+    File.delete(@path) if @mode.truncate? && File.exists?(@path)
+    Dir.mkdir_p(File.dirname(@path)) if @mode.write? || @mode.create?
+
+    ptr = LibTokyocabinet.tchdbnew
+
+    if LibTokyocabinet.tchdbopen(ptr, @path, @mode) == LibC::TRUE
+      self.ptr = ptr
+      return self
+    else
+      raise build_error(ptr, glue: "'#{@path}' (#{@mode})")
+    end
+
+    return self
+  rescue err : ThreadingError
+    err.message = "The file is already opened and is locked"
+    raise err
+  end
+
+  def opened?
+    !!@ptr
+  end
+
+  def lock : HDB
+    open
+  end
+
+  def unlock : HDB
+    close
+  end
+
+  def close : HDB
+    if opened?
+      tchdbclose
+      @ptr = nil
+    end
+    return self
   end
   
   def get?(key : String) : String?
-    ptr = tchdbget2(hdb, key)
+    ptr = tchdbget2(key)
     if ptr.null?
       return nil
     else
@@ -17,13 +54,13 @@ class Tokyocabinet::HDB
   end
   
   def set(key : String, val : String)
-    tchdbput2(hdb, key, val)
+    tchdbput2(key, val)
   rescue err : InvalidOperation
     raise IO::Error.new("File not open for writing: #{@clue}")
   end
 
   def del(key : String) : Bool
-    tchdbout2(hdb, key)
+    tchdbout2(key)
     return true
   rescue err
     return false if err.message =~ /no record/
@@ -31,17 +68,17 @@ class Tokyocabinet::HDB
   end
 
   def count : Int64
-    tchdbrnum(hdb).to_i64
+    tchdbrnum.to_i64
   end
 
   def bnum : Int64
-    tchdbbnum(hdb).to_i64
+    tchdbbnum.to_i64
   end
 
 #  throws tchdbadddouble
 #  throws tchdbaddint
 #  throws tchdbalign
-  proxy  tchdbbnum
+  native tchdbbnum
 #  throws tchdbbnumused
 #  throws tchdbcacheclear
   throws tchdbclose
@@ -51,8 +88,8 @@ class Tokyocabinet::HDB
 #  throws tchdbdefrag
 #  throws tchdbdel
 #  throws tchdbdfunit
-  proxy  tchdbecode
-  proxy  tchdberrmsg
+  native tchdbecode
+  native tchdberrmsg
 #  throws tchdbfbpmax
 #  throws tchdbflags
 #  throws tchdbforeach
@@ -60,7 +97,7 @@ class Tokyocabinet::HDB
 #  throws tchdbfwmkeys
 #  throws tchdbfwmkeys2
 #  throws tchdbget
-  proxy  tchdbget2
+  native tchdbget2
 #  throws tchdbget3
 #  throws tchdbgetnext
 #  throws tchdbgetnext2
@@ -93,7 +130,7 @@ class Tokyocabinet::HDB
 #  throws tchdbputkeep
 #  throws tchdbputkeep2
 #  throws tchdbputproc
-  proxy  tchdbrnum
+  native tchdbrnum
 #  throws tchdbsetcache
 #  throws tchdbsetcodecfunc
 #  throws tchdbsetdbgfd
@@ -116,34 +153,29 @@ class Tokyocabinet::HDB
 end
 
 class Tokyocabinet::HDB
-  def self.create(path : String, bnum : Int64 = 131071, apow : Int8 = 4, fpow : Int8 = 10, opts : Opts = :none, truncate : Bool = true)
-    hdb = LibTokyocabinet.tchdbnew
+  def self.create(path : String, bnum : Int64 = 131071, apow : Int8 = 4, fpow : Int8 = 10, opts : Opts = :none, force : Bool = false)
+    ptr = LibTokyocabinet.tchdbnew
 
-    if LibTokyocabinet.tchdbtune(hdb, bnum, apow, fpow, opts.value) == LibC::FALSE
-      raise_error(hdb, "tuning parameters should be set before the database is opened")
+    if LibTokyocabinet.tchdbtune(ptr, bnum, apow, fpow, opts) == LibC::FALSE
+      error = build_error(ptr, "tuning parameters should be set before the database is opened")
+      raise error
     end
+
+    File.delete(path) if force && File.exists?(path)
+    Dir.mkdir_p(File.dirname(path))
 
     mode = Mode::WRITE | Mode::CREATE
-    mode |= Mode::TRUNCATE if truncate
-    open(hdb, path, mode).close
-  end
-
-  private def self.open(hdb : LibTokyocabinet::Tchdb*, path : String, mode : Mode) : HDB
-    File.delete(path) if mode.truncate? && File.exists?(path)
-    Dir.mkdir_p(File.dirname(path)) if mode.write? || mode.create?
-
-    if LibTokyocabinet.tchdbopen(hdb, path, mode) == LibC::TRUE
-      return new(hdb, clue: path)
-    else
-      raise_error(hdb, glue: "'#{path}' (#{mode})")
+    if LibTokyocabinet.tchdbopen(ptr, path, mode) == LibC::FALSE
+      raise build_error(ptr, glue: "'#{path}' (#{mode})")
     end
-  rescue err : ThreadingError
-    err.message = "The file is already opened and is locked"
-    raise err
+    hdb = new(path, mode)
+    hdb.ptr = ptr
+
+    return hdb.close
   end
 
   def self.open(path : String, mode : Mode | String = "r") : HDB
-    open(LibTokyocabinet.tchdbnew, path, Mode.build(mode))
+    new(path, Mode.build(mode)).lock
   end
 
   def self.open(path : String, mode : Mode | String = "r", &block : HDB -> _ )

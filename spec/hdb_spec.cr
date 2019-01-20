@@ -1,5 +1,9 @@
 require "./spec_helper"
 
+private macro clean
+  Pretty::Dir.clean("tmp")
+end
+
 module Tokyocabinet
   describe HDB do
     describe "(README)" do
@@ -26,27 +30,33 @@ module Tokyocabinet
 
     describe ".create" do
       it "writes database" do
-        Pretty::Dir.clean("tmp")
+        clean
         HDB.create("tmp/test.tch")
         HDB.open("tmp/test.tch", &.bnum).should eq(131071)
       end
 
       it "respects bnum" do
-        Pretty::Dir.clean("tmp")
+        clean
         HDB.create("tmp/test.tch", bnum: 16)
-        HDB.open("tmp/test.tch", &.bnum).should eq(17) # ceiled to prime number
+        HDB.new("tmp/test.tch").bnum.should eq(17) # ceiled to prime number
       end
 
-      it "truncates existing db when :truncate option is set" do
-        Pretty::Dir.clean("tmp")
-        HDB.open("tmp/test.tch", "w+", &.set("a", "1"))
-        HDB.open("tmp/test.tch", &.count).should eq(1)
+      it "ignores when the file already exists" do
+        clean
+        HDB.create("tmp/test.tch", bnum: 17)
+        HDB.new("tmp/test.tch").bnum.should eq(17)
 
-        HDB.create("tmp/test.tch", truncate: false)
-        HDB.open("tmp/test.tch", &.count).should eq(1)
+        HDB.create("tmp/test.tch", bnum: 100)
+        HDB.new("tmp/test.tch").bnum.should eq(17)
+      end
 
-        HDB.create("tmp/test.tch")
-        HDB.open("tmp/test.tch", &.count).should eq(0)
+      it "deletes existing file when :force is set" do
+        clean
+        HDB.create("tmp/test.tch", bnum: 17)
+        HDB.new("tmp/test.tch").bnum.should eq(17)
+
+        HDB.create("tmp/test.tch", bnum: 59, force: true)
+        HDB.new("tmp/test.tch").bnum.should eq(59)
       end
     end
 
@@ -61,7 +71,7 @@ module Tokyocabinet
 
       context "(mode: r)" do
         it "fails when the file is not found" do
-          Pretty::Dir.clean("tmp")
+          clean
           expect_raises(FileNotFound, /test.tch/) do
             HDB.open("tmp/test.tch", "r").close
           end
@@ -90,7 +100,7 @@ module Tokyocabinet
 
       context "(mode: w)" do
         it "fails when the file is not found" do
-          Pretty::Dir.clean("tmp")
+          clean
           expect_raises(FileNotFound, /test.tch/) do
             HDB.open("tmp/test.tch", "w").close
           end
@@ -118,7 +128,7 @@ module Tokyocabinet
 
       context "(mode: w+)" do
         it "creates an empty db when the file is not found" do
-          Pretty::Dir.clean("tmp")
+          clean
           hdb = HDB.open("tmp/test.tch", "w+")
           hdb.set("foo", "1")
           hdb.close
@@ -148,6 +158,23 @@ module Tokyocabinet
 
           # works after unlocked
           b = HDB.open("tmp/test.tch")
+          b.close
+        end
+      end
+
+      describe "(unlock)" do
+        it "works without lock" do
+          clean
+
+          a = HDB.open("tmp/test.tch", "w+").unlock
+          a.opened?.should be_false
+          a.set("foo", "1")
+          
+          b = HDB.open("tmp/test.tch", "w+").unlock
+          b.opened?.should be_false
+          b.set("bar", "2")
+
+          a.close
           b.close
         end
       end

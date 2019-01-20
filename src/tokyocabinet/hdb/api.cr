@@ -1,13 +1,16 @@
 class Tokyocabinet::HDB
+  include Enumerable(String)
+
   def open : HDB
     return self if opened?
+    open(Lib.tchdbnew)
+  end
 
+  protected def open(ptr) : HDB
     File.delete(@path) if @mode.truncate? && File.exists?(@path)
     Dir.mkdir_p(File.dirname(@path)) if @mode.write? || @mode.create?
 
-    ptr = LibTokyocabinet.tchdbnew
-
-    if LibTokyocabinet.tchdbopen(ptr, @path, @mode) == LibC::TRUE
+    if Lib.tchdbopen(ptr, @path, @mode) == LibC::TRUE
       self.ptr = ptr
       return self
     else
@@ -24,6 +27,10 @@ class Tokyocabinet::HDB
     !!@ptr
   end
 
+  def closed?
+    !@ptr
+  end
+
   def lock : HDB
     open
   end
@@ -35,6 +42,7 @@ class Tokyocabinet::HDB
   def close : HDB
     if opened?
       tchdbclose
+      tchdbdel
       @ptr = nil
     end
     return self
@@ -59,6 +67,16 @@ class Tokyocabinet::HDB
     raise IO::Error.new("File not open for writing: #{@clue}")
   end
 
+  def set(records : Hash(String, String))
+    connect do
+      records.each do |key, val|
+        Lib.tchdbput2(db, key, val)
+      end
+    end
+  rescue err : InvalidOperation
+    raise IO::Error.new("File not open for writing: #{@clue}")
+  end
+  
   def del(key : String) : Bool
     tchdbout2(key)
     return true
@@ -75,6 +93,54 @@ class Tokyocabinet::HDB
     tchdbbnum.to_i64
   end
 
+  def each : Nil
+    connect do
+      iternew
+      while key = iternext?
+        yield key
+      end
+    end
+  end
+
+  private def iternew
+    # setcodecfunc # TODO: enable this to support HDBTEXCODEC
+    tchdbiterinit
+  end
+
+  private def iternext? : String?
+    kbuf = Lib.tchdbiternext2(db)
+    if kbuf.null?
+      return nil
+    else
+      return String.new(kbuf).tap{ Lib.tcfree(kbuf) }
+    end
+  end
+
+  private def setcodecfunc
+    close
+    ptr = Lib.tchdbnew
+    if Lib.tchdbsetcodecfunc(
+         ptr,
+         ->(_ptr, size, sp, op) {
+           Lib._tc_recencode(_ptr, size, sp, op)
+           Pointer(Void).null
+         },
+         Pointer(Void).null,
+         ->(_ptr, size, sp, op) {
+             Lib._tc_recdecode(_ptr, size, sp, op)
+             Pointer(Void).null
+         },
+         Pointer(Void).null
+       ) == LibC::TRUE
+      open(ptr)
+    else
+      raise self.class.build_error(ptr)
+    end
+  rescue err : InvalidOperation
+    err.message = "tchdbsetcodecfunc was called with opened database"
+    raise err
+  end
+  
 #  throws tchdbadddouble
 #  throws tchdbaddint
 #  throws tchdbalign
@@ -86,7 +152,7 @@ class Tokyocabinet::HDB
 #  throws tchdbcopy
 #  throws tchdbdbgfd
 #  throws tchdbdefrag
-#  throws tchdbdel
+  native tchdbdel
 #  throws tchdbdfunit
   native tchdbecode
   native tchdberrmsg
@@ -104,11 +170,11 @@ class Tokyocabinet::HDB
 #  throws tchdbgetnext3
 #  throws tchdbhasmutex
 #  throws tchdbinode
-#  throws tchdbiterinit
+  throws tchdbiterinit
 #  throws tchdbiterinit2
 #  throws tchdbiterinit3
-#  throws tchdbiternext
-#  throws tchdbiternext2
+  native tchdbiternext
+  native tchdbiternext2
 #  throws tchdbiternext3
 #  throws tchdbmemsync
 #  throws tchdbmtime
@@ -132,7 +198,7 @@ class Tokyocabinet::HDB
 #  throws tchdbputproc
   native tchdbrnum
 #  throws tchdbsetcache
-#  throws tchdbsetcodecfunc
+  throws tchdbsetcodecfunc
 #  throws tchdbsetdbgfd
 #  throws tchdbsetdfunit
 #  throws tchdbsetecode
@@ -154,9 +220,9 @@ end
 
 class Tokyocabinet::HDB
   def self.create(path : String, bnum : Int64 = 131071, apow : Int8 = 4, fpow : Int8 = 10, opts : Opts = :none, force : Bool = false)
-    ptr = LibTokyocabinet.tchdbnew
+    ptr = Lib.tchdbnew
 
-    if LibTokyocabinet.tchdbtune(ptr, bnum, apow, fpow, opts) == LibC::FALSE
+    if Lib.tchdbtune(ptr, bnum, apow, fpow, opts) == LibC::FALSE
       error = build_error(ptr, "tuning parameters should be set before the database is opened")
       raise error
     end
@@ -165,7 +231,7 @@ class Tokyocabinet::HDB
     Dir.mkdir_p(File.dirname(path))
 
     mode = Mode::WRITE | Mode::CREATE
-    if LibTokyocabinet.tchdbopen(ptr, path, mode) == LibC::FALSE
+    if Lib.tchdbopen(ptr, path, mode) == LibC::FALSE
       raise build_error(ptr, glue: "'#{path}' (#{mode})")
     end
     hdb = new(path, mode)

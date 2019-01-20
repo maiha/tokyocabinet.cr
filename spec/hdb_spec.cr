@@ -27,6 +27,21 @@ module Tokyocabinet
       end
     end
 
+    describe "#each" do
+      it "enumerates records with keys" do
+        clean
+        HDB["tmp/test.tch"].set({"a" => "1", "b" => "2"})
+
+        # works twice
+        2.times do
+          hash = Hash(String, String).new
+          hdb = HDB["tmp/test.tch"]
+          hdb.each{ |key| hash[key] = hdb.get(key)}
+          hash.should eq({"a" => "1", "b" => "2"})
+        end
+      end
+    end
+
     describe "#connect(&block)" do
       it "ensures connection" do
         clean

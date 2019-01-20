@@ -1,6 +1,8 @@
 module Tokyocabinet::Core(T)
   abstract def db : T
 
+  alias Lib = LibTokyocabinet
+                                         
   def connect(&block : -> _)
     if opened?
       yield
@@ -8,6 +10,14 @@ module Tokyocabinet::Core(T)
       open
       yield.tap{ close }
     end
+  end
+
+  protected def unlock(&block : -> _)
+    should_lock = opened?
+    unlock
+    yield
+  ensure
+    lock if should_lock
   end
 
   # proxy to native command with error handlings

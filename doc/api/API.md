@@ -1,6 +1,12 @@
 # Supported API
-## Implemented 12% (9/75)
-### Tch (9 / 75)
+## Implemented 18% (14/76)
+### Tcf (0 / 1)
+
+|Command |impl|note|
+|--------|:--:|----|
+|`tcfree`|    |    |
+
+### Tch (14 / 75)
 
 |Command            |impl|note|
 |-------------------|:--:|----|
@@ -15,7 +21,7 @@
 |`tchdbcopy`        |    |    |
 |`tchdbdbgfd`       |    |    |
 |`tchdbdefrag`      |    |    |
-|`tchdbdel`         |    |    |
+|`tchdbdel`         |  ✓ |    |
 |`tchdbdfunit`      |    |    |
 |`tchdbecode`       |  ✓ |    |
 |`tchdberrmsg`      |  ✓ |    |
@@ -33,11 +39,11 @@
 |`tchdbgetnext3`    |    |    |
 |`tchdbhasmutex`    |    |    |
 |`tchdbinode`       |    |    |
-|`tchdbiterinit`    |    |    |
+|`tchdbiterinit`    |  ✓ |    |
 |`tchdbiterinit2`   |    |    |
 |`tchdbiterinit3`   |    |    |
-|`tchdbiternext`    |    |    |
-|`tchdbiternext2`   |    |    |
+|`tchdbiternext`    |  ✓ |    |
+|`tchdbiternext2`   |  ✓ |    |
 |`tchdbiternext3`   |    |    |
 |`tchdbmemsync`     |    |    |
 |`tchdbmtime`       |    |    |
@@ -61,7 +67,7 @@
 |`tchdbputproc`     |    |    |
 |`tchdbrnum`        |  ✓ |    |
 |`tchdbsetcache`    |    |    |
-|`tchdbsetcodecfunc`|    |    |
+|`tchdbsetcodecfunc`|  ✓ |    |
 |`tchdbsetdbgfd`    |    |    |
 |`tchdbsetdfunit`   |    |    |
 |`tchdbsetecode`    |    |    |

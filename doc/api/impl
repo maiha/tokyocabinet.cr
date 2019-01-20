@@ -1,9 +1,14 @@
 tchdbbnum
 tchdbclose
+tchdbdel
 tchdbecode
 tchdberrmsg
 tchdbget2
+tchdbiterinit
+tchdbiternext
+tchdbiternext2
 tchdbout2
 tchdbput2
 tchdbrnum
+tchdbsetcodecfunc
 tchdbtune

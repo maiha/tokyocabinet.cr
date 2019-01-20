@@ -12,6 +12,7 @@ lib LibC
 end
 require "./lib_tokyocabinet"
 require "./lib_tokyocabinet_const"
+require "./lib_tokyocabinet_misc"
 
 ## module
 module Tokyocabinet

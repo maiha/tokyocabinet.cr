@@ -1,5 +1,6 @@
 @[Link("tokyocabinet")]
 lib LibTokyocabinet
+  fun tcfree(ptr : Void*)
   fun tchdberrmsg(ecode : LibC::Int) : LibC::Char*
   fun tchdbnew : Tchdb*
   struct Tchdb
@@ -74,10 +75,14 @@ lib LibTokyocabinet
     cnt_shiftrec : Int64T
     cnt_trunc : Int64T
   end
-  alias Uint8T = UInt8
-  alias Uint64T = LibC::ULong
-  alias Uint32T = LibC::UInt
-  alias Int32T = LibC::Int
+  alias X__Uint8T = UInt8
+  alias Uint8T = X__Uint8T
+  alias X__Uint64T = LibC::ULong
+  alias Uint64T = X__Uint64T
+  alias X__Uint32T = LibC::UInt
+  alias Uint32T = X__Uint32T
+  alias X__Int32T = LibC::Int
+  alias Int32T = X__Int32T
   struct Tcxstr
     ptr : LibC::Char*
     size : LibC::Int
@@ -110,12 +115,14 @@ lib LibTokyocabinet
   alias Tccodec = (Void*, LibC::Int, LibC::Int*, Void* -> Void*)
   alias X__TimeT = LibC::Long
   alias TimeT = X__TimeT
-  alias Int64T = LibC::Long
+  alias X__Int64T = LibC::Long
+  alias Int64T = X__Int64T
   fun tchdbdel(hdb : Tchdb*)
   fun tchdbecode(hdb : Tchdb*) : LibC::Int
   fun tchdbsetmutex(hdb : Tchdb*) : LibC::Bool
   fun tchdbtune(hdb : Tchdb*, bnum : Int64T, apow : Int8T, fpow : Int8T, opts : Uint8T) : LibC::Bool
-  alias Int8T = LibC::Char
+  alias X__Int8T = LibC::Char
+  alias Int8T = X__Int8T
   fun tchdbsetcache(hdb : Tchdb*, rcnum : Int32T) : LibC::Bool
   fun tchdbsetxmsiz(hdb : Tchdb*, xmsiz : Int64T) : LibC::Bool
   fun tchdbsetdfunit(hdb : Tchdb*, dfunit : Int32T) : LibC::Bool

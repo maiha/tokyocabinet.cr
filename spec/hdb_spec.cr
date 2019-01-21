@@ -130,9 +130,7 @@ module Tokyocabinet
         end
 
         it "(stub data)" do
-          hdb = HDB.open("tmp/test.tch", "w+")
-          hdb.set("foo", "1")
-          hdb.close
+          HDB["tmp/test.tch"].set("foo", "1")
         end
 
         it "can read" do

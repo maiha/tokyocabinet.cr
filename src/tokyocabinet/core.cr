@@ -1,21 +1,24 @@
 module Tokyocabinet::Core(T)
   abstract def db : T
+  abstract def opened? : Bool
+  abstract def open : T
+  abstract def close : T
+  abstract def unlock : T
 
   alias Lib = LibTokyocabinet
                                          
-  def connect(&block : -> _)
-    if opened?
-      yield
-    else
-      open
-      yield.tap{ close }
-    end
+  def connect(&block : T -> _)
+    should_close = !opened?
+    open
+    yield(self)
+  ensure
+    close if should_close
   end
 
-  protected def unlock(&block : -> _)
+  protected def unlock(&block : T -> _)
     should_lock = opened?
     unlock
-    yield
+    yield(self)
   ensure
     lock if should_lock
   end

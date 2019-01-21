@@ -47,8 +47,8 @@ module Tokyocabinet
         clean
         hdb = HDB.new("tmp/test.tch")
         hdb.opened?.should eq(false)
-        hdb.connect do
-          hdb.opened?.should eq(true)
+        hdb.connect do |db|
+          db.opened?.should eq(true)
         end
         hdb.close
       end

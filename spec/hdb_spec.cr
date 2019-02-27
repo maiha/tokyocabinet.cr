@@ -23,6 +23,10 @@ module Tokyocabinet
         hdb.del("foo").should eq(false)
         hdb.get?("foo").should eq(nil)
 
+        hdb.set("b1", Bytes[1,0,2])
+        hdb.get("b1").should eq("\u0001")
+        hdb.bget("b1").should eq(Bytes[1,0,2])
+
         hdb.close
       end
     end

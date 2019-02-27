@@ -10,6 +10,9 @@
   def get(key : String) : String
   def set(key : String, val : String)
   def set(records : Hash(String, String))
+  def bget?(key : String) : Bytes?
+  def bget(key : String) : Bytes
+  def set(key : String, val : Bytes)
   def del(key : String) : Bool
   def count : Int64
   def bnum : Int64

@@ -1,12 +1,12 @@
 # Supported API
-## Implemented 18% (14/76)
+## Implemented 21% (16/76)
 ### Tcf (0 / 1)
 
 |Command |impl|note|
 |--------|:--:|----|
 |`tcfree`|    |    |
 
-### Tch (14 / 75)
+### Tch (16 / 75)
 
 |Command            |impl|note|
 |-------------------|:--:|----|
@@ -31,7 +31,7 @@
 |`tchdbfsiz`        |    |    |
 |`tchdbfwmkeys`     |    |    |
 |`tchdbfwmkeys2`    |    |    |
-|`tchdbget`         |    |    |
+|`tchdbget`         |  ✓ |    |
 |`tchdbget2`        |  ✓ |    |
 |`tchdbget3`        |    |    |
 |`tchdbgetnext`     |    |    |
@@ -56,7 +56,7 @@
 |`tchdbout`         |    |    |
 |`tchdbout2`        |  ✓ |    |
 |`tchdbpath`        |    |    |
-|`tchdbput`         |    |    |
+|`tchdbput`         |  ✓ |    |
 |`tchdbput2`        |  ✓ |    |
 |`tchdbputasync`    |    |    |
 |`tchdbputasync2`   |    |    |

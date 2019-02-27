@@ -22,6 +22,11 @@ hdb.del("foo")  # => true
 hdb.del("foo")  # => false
 hdb.get?("foo") # => nil
 
+# binary
+hdb.set("b1", Bytes[1,0,2])
+hdb.get("b1")   # => "\u0001"
+hdb.bget("b1")  # => Bytes[1,0,2]
+
 hdb.close
 ```
 

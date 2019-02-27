@@ -48,6 +48,8 @@ class Tokyocabinet::HDB
     return self
   end
 
+  ### String
+  
   def get?(key : String) : String?
     ptr = tchdbget2(key)
     if ptr.null?
@@ -76,7 +78,29 @@ class Tokyocabinet::HDB
   rescue err : InvalidOperation
     raise IO::Error.new("File not open for writing: #{@clue}")
   end
+
+  ### Binary
+
+  def bget?(key : String) : Bytes?
+    len = Pointer(Int32).malloc(1_u64)
+    ptr = tchdbget(key, key.size, len).as(Pointer(UInt8))
+    if ptr.null?
+      return nil
+    else
+      return Bytes.new(ptr, len.value)
+    end
+  end
   
+  def bget(key : String) : Bytes
+    bget?(key) || raise RecordNotFound.new("not found: '#{key}'")
+  end
+  
+  def set(key : String, val : Bytes)
+    tchdbput(key.to_unsafe, key.size, val.to_unsafe, val.size)
+  rescue err : InvalidOperation
+    raise IO::Error.new("File not open for writing: #{@clue}")
+  end
+
   def del(key : String) : Bool
     tchdbout2(key)
     return true
@@ -162,7 +186,7 @@ class Tokyocabinet::HDB
 #  throws tchdbfsiz
 #  throws tchdbfwmkeys
 #  throws tchdbfwmkeys2
-#  throws tchdbget
+  native tchdbget
   native tchdbget2
 #  throws tchdbget3
 #  throws tchdbgetnext
@@ -187,7 +211,7 @@ class Tokyocabinet::HDB
 #  throws tchdbout
   throws tchdbout2
 #  throws tchdbpath
-#  throws tchdbput
+  throws tchdbput
   throws tchdbput2
 #  throws tchdbputasync
 #  throws tchdbputasync2

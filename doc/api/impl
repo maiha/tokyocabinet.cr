@@ -3,11 +3,13 @@ tchdbclose
 tchdbdel
 tchdbecode
 tchdberrmsg
+tchdbget
 tchdbget2
 tchdbiterinit
 tchdbiternext
 tchdbiternext2
 tchdbout2
+tchdbput
 tchdbput2
 tchdbrnum
 tchdbsetcodecfunc
